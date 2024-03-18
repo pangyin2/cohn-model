@@ -1,0 +1,36 @@
+---
+title: "Analyzing Voter Behavior: A Logistic Regression Approach to Poll Data Interpretation"
+format: pdf
+editor: visual
+---
+```{r}
+# Load necessary library
+library(dplyr)
+
+# Simulate some data
+set.seed(2024) # For reproducibility
+n <- 867 # Number of responses
+data <- tibble(
+  race = sample(c("white", "hispanic", "black"), size = n, replace = TRUE, prob = c(0.68, 0.15, 0.17)),
+  party_affiliation = sample(c("democrat", "republican", "independent"), size = n, replace = TRUE, prob = c(0.5, 0.3, 0.2)),
+  vote_history = sample(0:1, size = n, replace = TRUE), # 0 for no past voting, 1 for voted in past
+  voted_for_clinton = sample(0:1, size = n, replace = TRUE) # 0 for no, 1 for yes
+)
+
+# Create dummy variables for categorical data
+data <- data %>%
+  mutate(white = as.integer(race == "white"),
+         hispanic = as.integer(race == "hispanic"),
+         black = as.integer(race == "black"),
+         democrat = as.integer(party_affiliation == "democrat"),
+         republican = as.integer(party_affiliation == "republican"),
+         independent = as.integer(party_affiliation == "independent"))
+
+library(broom)
+model <- glm(voted_for_clinton ~ white + hispanic + black + democrat + republican + independent + vote_history, 
+             family = binomial(link = "logit"), 
+             data = data)
+tidy_model <- tidy(model)
+print(tidy_model)
+write.csv(tidy_model, file = "model_summary.csv", row.names = FALSE)
+```
